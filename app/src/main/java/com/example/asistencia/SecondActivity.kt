@@ -6,9 +6,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.asistencia.databinding.ActivityMainBinding
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.net.FileNameMap
 
 class SecondActivity : AppCompatActivity() {
     private val TAG = "SecondActivity"
@@ -46,49 +43,44 @@ class SecondActivity : AppCompatActivity() {
                 //crear objeto usuario
                 val usuario = Usuario(nombre, apellido, correo, telefono, gSangre)
                 saveUser(this, usuario, FILENAME)
+                Toast.makeText(applicationContext, "Registro guardado", Toast.LENGTH_SHORT).show()
             }
         }
 
         //lectura del archivo generado
         binding.mostrar.setOnClickListener {
-            val usuarios = readUsers(this, FILENAME)
-            usuarios.forEach { user -> Log.d(TAG, user.toString())}
+            readUsers(this, FILENAME)
+            Toast.makeText(applicationContext, "Registros mostrados", Toast.LENGTH_SHORT).show()
         }
     }
 
     fun saveUser(context: Context, user: Usuario, fileName: String) {
         try {
-            val fileOutputStream = context.openFileOutput(fileName, Context.MODE_APPEND)
-            val objectOutputStream = ObjectOutputStream(fileOutputStream)
-
-            // guardar objeto
-            objectOutputStream.writeObject(user)
-            objectOutputStream.close()
+            var fileOutputStream = context.openFileOutput(fileName, Context.MODE_APPEND)
+            //guardar objeto
+            fileOutputStream.write((user.toString()+"\n").toByteArray())
             fileOutputStream.close()
+            Toast.makeText(applicationContext, "Registro guardado exitosamente", Toast.LENGTH_SHORT).show()
+
         } catch (e: Exception) {
             Log.d(TAG, "Error al guardar datos")
             e.printStackTrace()
         }
     }
 
-    fun readUsers(context: Context, filename: String) : List<Usuario>{
-        val usuarios = mutableListOf<Usuario>()
+    fun readUsers(context: Context, filename: String) {
         try {
-            val fileInputStream = context.openFileInput(filename)
-            val objectInputStream = ObjectInputStream(fileInputStream)
 
-            // leer objetos
-            while (fileInputStream.available() > 0) {
-                val usuario = objectInputStream.readObject() as Usuario
-                usuarios.add(usuario)
-            }
-            objectInputStream.close()
+            var fileInputStream = context.openFileInput(filename)
+            var inputStreamReader = fileInputStream.bufferedReader()
+
+            val content = inputStreamReader.use { it.readText() }
             fileInputStream.close()
+            Log.d(TAG, content)
+
         } catch (e: Exception) {
             Log.d(TAG, "Error al leer datos")
             e.printStackTrace()
         }
-
-        return usuarios
     }
 }
